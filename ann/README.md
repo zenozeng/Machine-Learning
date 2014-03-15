@@ -1,5 +1,14 @@
 # ANN
 
+## Answers
+
+### 4.1
+
+```
+w = (-2, -2, 1)
+x = (1, x1, x2)
+```
+
 ## Install Deps
 
 `lein deps`
