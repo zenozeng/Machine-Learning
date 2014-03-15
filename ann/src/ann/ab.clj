@@ -26,7 +26,8 @@
    (rand-weight)
    (rand-weight)])
 
-(def perceptron (create-perceptron))
+;; (def perceptron (create-perceptron))
+(def perceptron (list 0 0 0))
 
 ;; (def a [1 2 3]) 
 ;; (def b [4 5 6])
@@ -50,37 +51,22 @@
 (defn train-perceptron
   "训练感知器，返回新的 weights"
   [{inputs :input, target :output, weights :weights}]
-  (def delta 1)
-  (def old-weights nil)
-  (def i 0)
-  (while (and (not (good-enough? delta))
-              (not (could-not-do-better? old-weights weights)))
-    (def i (inc i))
-    (if (= (mod i 100) 0)
-      (println delta weights))
-    (def output (calc inputs weights))
-    (def delta (* (- target output)))
-    (def old-weights weights)
-    (def weights (map (fn [input weight]
-           (+ weight
-              (* delta (sgn input) study-rate)))
-         (concat '(1) inputs)
-         weights)))
-  weights)
-
-
+  (def delta (- target (calc inputs weights)))
+  (map (fn [input weight]
+         (+ weight
+            (* delta (sgn input) study-rate)))
+       (concat '(1) inputs)
+       weights))
 
 ;;; 对外接口
 
 (defn train
   "Train NeuralNetwork"
   [{input :input, output :output}]
-  (dotimes [i 1000]
-    ;; (println (str "Train | Input: " input))
-    ;; (println (str "Train | Output: " output))
-    (def perceptron (train-perceptron {:input input, :output output, :weights perceptron}))
-    ;; (println perceptron)
-    ))
+  (println (str "Train | Input: " input))
+  (println (str "Train | Output: " output))
+  (dotimes [i 10000]
+    (def perceptron (train-perceptron {:input input, :output output, :weights perceptron}))))
 
 (defn run
   ""
