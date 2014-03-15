@@ -9,6 +9,10 @@ w = (-2, -2, 1)
 x = (1, x1, x2)
 ```
 
+### 4.2 Ann for (and A (not B))
+
+See `src/ann/ab.clj`
+
 ## Install Deps
 
 `lein deps`
