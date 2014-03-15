@@ -8,6 +8,6 @@
 
 Use `lein exec -p <script-path>` to run script.
 
-For example, `lein exec -p src/\(and\ A\ \(not\ B\)\).clj`
+For example, `lein exec -p src/ann/ab.clj`
 
 Make sure you are at ann/
