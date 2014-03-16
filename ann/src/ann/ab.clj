@@ -5,86 +5,85 @@
 (ns ann.ab
   (:require [ann.util :as util]))
 
+;; Lib
+
+;; (def log println)
+(defn log [& body] nil)
+
+(defn abs
+  [n]
+  (if (> n 0) n (- n)))
+
 ;; 学习速率
 ;; 此参数可以缓和权重调整，不宜过大
-(def study-rate 0.001)
+(def study-rate 0.1)
 
 (defn sgn
   [x]
   (if (> x 0) 1 -1))
 
-;;; 初始化感知器
-
-(defn rand-weight
-  []
-  (- (rand 2) 1))
-
-(defn create-perceptron
-  "创建感知器，随机生成 w0, w1, w2"
-  []
-  [(rand-weight)
-   (rand-weight)
-   (rand-weight)])
-
-;; (def perceptron (create-perceptron))
-(def perceptron (list 0 0 0))
-
-;; (def a [1 2 3]) 
-;; (def b [4 5 6])
-;; (map * a b)
-;; => (4 10 18)
+(defn good-enough?
+  [delta]
+  (let [result (< (abs delta) 0.1)]
+    (log "Good-enough?" delta result)
+    result))
 
 (defn calc
   "w0 + w1*x1 + w2*x2"
   [inputs weights]
-  (+ (apply + (map * inputs (rest weights)))
-     (first weights)))
+  (let [result (+ (apply + (map * inputs (rest weights)))
+                  (first weights))]
+    (log "Calc:" inputs weights result)
+    result))
 
-(defn good-enough?
-  [delta]
-  (< delta 0.1))
+;;; 感知器
 
-(defn could-not-do-better?
-  [old-weights weights]
-  (= old-weights weights))
+(defn create-perceptron
+  []
+  [0 0 0])
 
 (defn train-perceptron
-  "训练感知器，返回新的 weights"
-  [{inputs :input, target :output, weights :weights}]
-  (def delta (- target (calc inputs weights)))
-  (map (fn [input weight]
-         (+ weight
-            (* delta (sgn input) study-rate)))
-       (concat '(1) inputs)
-       weights))
-
-;;; 对外接口
-
-(defn train
-  "Train NeuralNetwork"
-  [{input :input, output :output}]
-  (println (str "Train | Input: " input))
-  (println (str "Train | Output: " output))
-  (dotimes [i 10000]
-    (def perceptron (train-perceptron {:input input, :output output, :weights perceptron}))))
-
-(defn run
-  ""
-  [inputs]
-  (def output (calc inputs perceptron))
-  (println (str "Run | Input: " inputs))
-  (println (str "Run | Output: " output)))
+  "训练感知器，返回新的感知器"
+  [perceptron inputs target]
+  (let [delta (- target (calc inputs perceptron))]
+    (map (fn [input weight]
+           (+ weight
+              (* delta (sgn input) study-rate)))
+         (concat [1] inputs)
+         perceptron)))
 
 ;;; Test
 
-;; Train
-(train {:input '(1 1) :output -1})
-(train {:input '(1 -1) :output 1})
-(train {:input '(-1 1) :output -1})
-(train {:input '(-1 -1) :output -1})
+(let [data-collection [{:inputs [1 1] :target -1}
+                       {:inputs [1 -1] :target 1}
+                       {:inputs [-1 1] :target -1}
+                       {:inputs [-1 -1] :target -1}]]
+  ;; Train Data
 
-;; Run
-(run '(1 1))
-(run '(1 -1))
-(run '(-1 1))
-(run '(-1 -1))
+  (defn iter
+    [perceptron data-collection]
+    (defn all-good-enough?
+      []
+      (every? true?
+              (map (fn [{inputs :inputs target :target}]
+                     (good-enough? (- target (calc inputs perceptron))))
+                   data-collection)))
+    (doseq [{inputs :inputs target :target} data-collection]
+      (def perceptron (train-perceptron perceptron inputs target)))
+    (if (all-good-enough?)
+      perceptron
+      (iter perceptron data-collection)))
+
+  (def perceptron (iter (create-perceptron) data-collection))
+
+  ;; Test
+
+  (defn gen
+    [inputs]
+    ; (println (calc inputs perceptron))
+    )
+
+  (gen [1 1])
+  (gen [1 -1])
+  (gen [-1 1])
+  (gen [-1 -1]))
