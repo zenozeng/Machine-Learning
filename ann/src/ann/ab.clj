@@ -24,7 +24,7 @@
 
 (defn good-enough?
   [delta]
-  (let [result (< (abs delta) 0.1)]
+  (let [result (< (abs delta) 0.9)]
     (log "Good-enough?" delta result)
     result))
 
@@ -85,7 +85,7 @@
 
   (defn gen
     [inputs]
-    ; (println (calc inputs perceptron))
+    (println (sgn (calc inputs my-perceptron)))
     )
 
   (gen [1 1])
