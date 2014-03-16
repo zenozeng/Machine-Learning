@@ -7,8 +7,8 @@
 
 ;; Lib
 
-;; (def log println)
-(defn log [& body] nil)
+(def log println)
+;;(defn log [& body] nil)
 
 (defn abs
   [n]
@@ -45,12 +45,14 @@
 (defn train-perceptron
   "训练感知器，返回新的感知器"
   [perceptron inputs target]
-  (let [delta (- target (calc inputs perceptron))]
-    (map (fn [input weight]
-           (+ weight
-              (* delta (sgn input) study-rate)))
-         (concat [1] inputs)
-         perceptron)))
+  (let [delta (- target (calc inputs perceptron))
+        new-perceptron (map (fn [input weight]
+                              (+ weight
+                                 (* delta (sgn input) study-rate)))
+                            (concat [1] inputs)
+                            perceptron)]
+    (log "New Perceptron:" new-perceptron)
+    new-perceptron))
 
 ;;; Test
 
@@ -60,21 +62,24 @@
                        {:inputs [-1 -1] :target -1}]]
   ;; Train Data
 
-  (defn iter
-    [perceptron data-collection]
-    (defn all-good-enough?
-      []
-      (every? true?
-              (map (fn [{inputs :inputs target :target}]
-                     (good-enough? (- target (calc inputs perceptron))))
-                   data-collection)))
-    (doseq [{inputs :inputs target :target} data-collection]
-      (def perceptron (train-perceptron perceptron inputs target)))
-    (if (all-good-enough?)
-      perceptron
-      (iter perceptron data-collection)))
+  (defn all-good-enough?
+    [perceptron]
+    (every? true?
+            (map (fn [{inputs :inputs target :target}]
+                   (good-enough? (- target (calc inputs perceptron))))
+                 data-collection)))
 
-  (def perceptron (iter (create-perceptron) data-collection))
+  (def my-perceptron (loop [perceptron (create-perceptron)]
+                       (let [my-perc (loop [perc perceptron, data-collection data-collection]
+                                       (if (first data-collection)
+                                         (let [{inputs :inputs target :target} (first data-collection)]
+                                           (recur (train-perceptron perc inputs target) (rest data-collection)))
+                                         perc))]
+                         (if (all-good-enough? my-perc)
+                           my-perc
+                           (recur my-perc)))))
+
+  (log my-perceptron)
 
   ;; Test
 
