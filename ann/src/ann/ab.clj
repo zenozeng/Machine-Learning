@@ -24,17 +24,13 @@
 
 (defn good-enough?
   [delta]
-  (let [result (< (abs delta) 0.9)]
-    (log "Good-enough?" delta result)
-    result))
+  (< (abs delta) 0.9))
 
 (defn calc
   "w0 + w1*x1 + w2*x2"
   [inputs weights]
-  (let [result (+ (apply + (map * inputs (rest weights)))
-                  (first weights))]
-    (log "Calc:" inputs weights result)
-    result))
+  (+ (apply + (map * inputs (rest weights)))
+     (first weights)))
 
 ;;; 感知器
 
@@ -45,14 +41,12 @@
 (defn train-perceptron
   "训练感知器，返回新的感知器"
   [perceptron inputs target]
-  (let [delta (- target (calc inputs perceptron))
-        new-perceptron (map (fn [input weight]
-                              (+ weight
-                                 (* delta (sgn input) study-rate)))
-                            (concat [1] inputs)
-                            perceptron)]
-    (log "New Perceptron:" new-perceptron)
-    new-perceptron))
+  (let [delta (- target (calc inputs perceptron))]
+    (map (fn [input weight]
+           (+ weight
+              (* delta (sgn input) study-rate)))
+         (concat [1] inputs)
+         perceptron)))
 
 ;;; Test
 
@@ -69,24 +63,23 @@
                    (good-enough? (- target (calc inputs perceptron))))
                  data-collection)))
 
-  (def my-perceptron (loop [perceptron (create-perceptron)]
-                       (let [my-perc (loop [perc perceptron, data-collection data-collection]
+  (def perceptron (loop [perceptron (create-perceptron)]
+                       (let [perceptron (loop [perceptron perceptron, data-collection data-collection]
                                        (if (first data-collection)
                                          (let [{inputs :inputs target :target} (first data-collection)]
-                                           (recur (train-perceptron perc inputs target) (rest data-collection)))
-                                         perc))]
-                         (if (all-good-enough? my-perc)
-                           my-perc
-                           (recur my-perc)))))
+                                           (recur (train-perceptron perceptron inputs target) (rest data-collection)))
+                                         perceptron))]
+                         (if (all-good-enough? perceptron)
+                           perceptron
+                           (recur perceptron)))))
 
-  (log my-perceptron)
+  (log perceptron)
 
   ;; Test
 
   (defn gen
     [inputs]
-    (println (sgn (calc inputs my-perceptron)))
-    )
+    (log "TEST" inputs "=>" (sgn (calc inputs perceptron))))
 
   (gen [1 1])
   (gen [1 -1])
